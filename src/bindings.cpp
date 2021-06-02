@@ -44,14 +44,14 @@ py::class_<Config>(m, "Config")
     	.def("setConfigItem", &Config::setConfigItem);
 
 
-py::class_<PacsetBase>(m, "PacsetBase")
+py::class_<BlocksetBase>(m, "BlocksetBase")
 	.def(py::init<>())
-	.def("initRandomForestClassifier", &PacsetBase::initRandomForestClassifier)
-	.def("initRandomForestRegressor", &PacsetBase::initRandomForestClassifier)
-	.def("initGradientBoostedClassifier", &PacsetBase::initRandomForestClassifier)
-	.def("initGradientBoostedRegressor", &PacsetBase::initRandomForestClassifier)
-	.def("loadAndPack", &PacsetBase::loadAndPack)
-	.def("predict", &PacsetBase::predict);
+	.def("initRandomForestClassifier", &BlocksetBase::initRandomForestClassifier)
+	.def("initRandomForestRegressor", &BlocksetBase::initRandomForestClassifier)
+	.def("initGradientBoostedClassifier", &BlocksetBase::initRandomForestClassifier)
+	.def("initGradientBoostedRegressor", &BlocksetBase::initRandomForestClassifier)
+	.def("loadAndPack", &BlocksetBase::loadAndPack)
+	.def("predict", &BlocksetBase::predict);
 /* 
    py::class_<PacsetBaseModel<float, int>>(m, "PacsetBaseModel")
         .def("setMembers", &PacsetBaseModel<float, int>::setMembers)

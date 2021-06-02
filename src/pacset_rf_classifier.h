@@ -151,13 +151,7 @@ class PacsetRandomForestClassifier: public PacsetBaseModel<T, F> {
 			int num_threads = std::stoi(Config::getValue("numthreads"));
 			int num_bins = PacsetBaseModel<T, F>::bin_sizes.size();
 			std::string modelfname = Config::getValue("modelfilename");
-			int num_files = std::stoi(Config::getValue("numfiles"));
-#ifdef LAT_LOGGING 
-			//MemoryMapped mmapped_obj(("/dat" + std::to_string(obsnum % NUM_FILES) + "/" + modelfname).c_str(), 0);
-			MemoryMapped mmapped_obj((modelfname + std::to_string(obsnum % num_files) + ".bin").c_str(), 0);
-#else
 			MemoryMapped mmapped_obj(modelfname.c_str(), 0);
-#endif
 			Node<T, F> *data = (Node<T, F>*)mmapped_obj.getData();
 
 			std::unordered_set<int> blocks_accessed;
@@ -225,33 +219,6 @@ class PacsetRandomForestClassifier: public PacsetBaseModel<T, F> {
 			return std::make_pair(bin_start_list + node_number/blob_size, node_number % blob_size);
 		}	
 		
-		void writeGarbage(){
-			std::fstream fi; 
-                	fi.open("/data_new/rand_file.txt", std::ios::out);
-                	for(int i=0; i<900000000; ++i)
-                    		fi<<(i+1)%6<<"\n";
-                	for(int i=0; i<900000000; ++i)
-                    		fi<<(float)(i) /float(i+2)<<"\n";
-                	fi.close();
-		}
-
-		void readGarbage(){
-                	std::fstream fi;
-                	int j;
-                	fi.open("/data_new/rand_file.txt");
-                	for(int i=0; i<300000000; ++i)
-                    		fi>>j;
-                	for(int i=0; i<300000000; ++i)
-                    		fi>>j;
-                	for(int i=0; i<300000000; ++i)
-                    		fi>>j;
-                	float k;
-			for(int i=0; i<400000000; ++i)
-                    		fi>>k;
-			for(int i=0; i<500000000; ++i)
-                    		fi>>k;
-                	fi.close();
-		}
 
 		inline void predict(const std::vector<std::vector<T>>& observation, 
 				std::vector<int>& preds, std::vector<int>&results, bool mmap) {
@@ -264,12 +231,7 @@ class PacsetRandomForestClassifier: public PacsetBaseModel<T, F> {
 			int num_classes = std::stoi(Config::getValue("numclasses"));
 			int num_bins; 
 			std::vector<double> elapsed_arr;
-			std::string layout = Config::getValue("layout");
-			std::string num_threads = Config::getValue("numthreads");
-			std::string dataset = Config::getValue("datafilename");
-			std::string intertwine = Config::getValue("intertwine");
-			std::string format = Config::getValue("format");
-			int batchsize = std::stoi(Config::getValue("batchsize"));
+			int batchsize = 1;
 
 			for(int i=0; i<num_classes; ++i){
 				preds.push_back(0);
@@ -280,13 +242,8 @@ class PacsetRandomForestClassifier: public PacsetBaseModel<T, F> {
 			int blocks;
 			int ct=0;
 			std::vector<int> num_blocks;
-			std::cout<<"observation start: "<<ct<<"\n";
-			fflush(stdout);
 			//writeGarbage();
 			for(auto single_obs : observation){
-				//readGarbage();
-				//readGarbage();
-				//readGarbage();
 				auto start = std::chrono::steady_clock::now();
 				if (mmap)
 					blocks = mmapAndPredict(single_obs, preds, ct+1);
@@ -303,49 +260,13 @@ class PacsetRandomForestClassifier: public PacsetBaseModel<T, F> {
 				}
 				int count = std::count(std::begin(preds), std::end(preds), max);
 				auto end = std::chrono::steady_clock::now();
-#ifdef LAT_LOGGING
-				double elapsed = std::chrono::duration<double, std::milli>(end - start).count();
-				cumi_time += elapsed;
-				if (ct % batchsize == 0){
-					elapsed_arr.push_back(cumi_time);
-					cumi_time = 0;
-				}
-#endif
 				ct++;
 				results.push_back(maxid); 
 				std::fill(preds.begin(), preds.end(), 0);
 				max = -1;
 				maxid = -1;
-				std::cout<<"Done observation: "<<ct-1<<"\n";
-				fflush(stdout);
 			}
 
-			std::string log_dir = Config::getValue(std::string("logdir"));
-#ifdef BLOCK_LOGGING 
-			std::fstream fout;
-			std::string filename = log_dir + "Blocks_" + 
-				layout + "threads_" + num_threads +
-				+ "intertwine_"  + intertwine +
-			       "batchsize_" + std::to_string(batchsize)	+ ".csv";
-			fout.open(filename, std::ios::out | std::ios::app);
-			for(auto i: num_blocks){
-				fout<<i<<",";
-			}
-			fout.close();
-#endif
-#ifdef LAT_LOGGING
-			std::fstream fout2;
-			std::string filename2 = log_dir + "latency_" + 
-				layout + "threads_" + num_threads +
-				"intertwine_"  + intertwine + 
-				"batchsize_" + std::to_string(batchsize) +
-			       	".csv";
-			fout2.open(filename2, std::ios::out | std::ios::app);
-			for(auto i: elapsed_arr){
-				fout2<<i<<",";
-			}
-			fout2.close();
-#endif
 		}
 
 

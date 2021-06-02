@@ -154,8 +154,6 @@ void JSONReader<T, F>::convertSklToBinsRapidJson(std::vector<std::vector<StatNod
         std::vector<int> &bin_node_sizes){
 
 
-    std::cout<<"json 1\n";
-    fflush(stdout);
     std::string task = Config::getValue("task");
     std::string algorithm = Config::getValue("algorithm");
     int count;
@@ -172,8 +170,6 @@ void JSONReader<T, F>::convertSklToBinsRapidJson(std::vector<std::vector<StatNod
     d.Parse(json);
     assert(d.IsObject());
     assert(d.HasMember("estimators"));
-    std::cout<<"json 2\n";
-    fflush(stdout);
     
     //Parse the metadata
     //get and set number of classes
@@ -202,8 +198,6 @@ void JSONReader<T, F>::convertSklToBinsRapidJson(std::vector<std::vector<StatNod
         bins[i].reserve(bin_sizes[i]);
     */
     //Recursively walk through the json model until we get the nodes per estimator
-    std::cout<<"json 3\n";
-    fflush(stdout);
     int tree_offset = 0, bin_number = 0, tree_num_in_bin = 0;
     std::vector<StatNode<T, F>> temp_bin;
     std::vector<std::vector<StatNode<T, F>>> temp_ensemble;
@@ -232,6 +226,7 @@ void JSONReader<T, F>::convertSklToBinsRapidJson(std::vector<std::vector<StatNod
     const Value& forest_nodes = d["estimators"]["nodes"];
     assert(num_trees == forest_nodes.Size());
     SizeType forest_size = forest_nodes.Size();   
+    Config::setConfigItem(std::string("numtrees"), std::to_string((int)forest_size));
     for (SizeType i=0; i< forest_size; ++i){
 	const Value& nodes = forest_nodes[i];
         SizeType num_nodes_in_tree = nodes.Size();
@@ -281,8 +276,6 @@ void JSONReader<T, F>::convertSklToBinsRapidJson(std::vector<std::vector<StatNod
         }
         tree_offset = temp_bin.size();
     }
-    std::cout<<"json 4\n";
-    fflush(stdout);
 
     if (task.compare(std::string("classification")) == 0 && algorithm.compare(std::string("randomforest"))==0)
         removeClassLeafNodes(bins, temp_ensemble );
@@ -293,7 +286,6 @@ void JSONReader<T, F>::convertSklToBinsRapidJson(std::vector<std::vector<StatNod
 
     auto end = std::chrono::steady_clock::now();
     double elapsed = std::chrono::duration<double, std::milli>(end - start).count();
-    std::cout<<"elapsed: "<<elapsed<<"\n";
     //populate the tree root indices (bin_start)
     //TODO: this is inefficient, do this check in removeLeafNodes!
     int counter = 0;

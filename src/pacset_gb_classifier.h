@@ -46,7 +46,6 @@ class PacsetGradientBoostedClassifier: public PacsetBaseModel<T, F> {
 	    auto bin = PacsetBaseModel<T, F>::bins[0];
             
 	    int num_bins = std::stoi(Config::getValue("numthreads"));
-	    std::cout<<"num bins: "<<num_bins<<"\n";
 	    for(int i=0; i<num_bins; ++i){
                 Packer<T, F> packer_obj(layout);
                 if(Config::getValue("intertwine") != std::string("notfound"))
@@ -147,7 +146,6 @@ class PacsetGradientBoostedClassifier: public PacsetBaseModel<T, F> {
             int num_threads = std::stoi(Config::getValue("numthreads"));
             int num_bins = PacsetBaseModel<T, F>::bin_sizes.size();
 	    int total_num_trees = 0;
-	    int num_files = std::stoi(Config::getValue("numfiles"));    
 	    std::for_each( PacsetBaseModel<T, F>::bin_sizes.begin(), 
 			    PacsetBaseModel<T, F>::bin_sizes.end(), [&] (int n) {
     				total_num_trees += n;
@@ -162,13 +160,7 @@ class PacsetGradientBoostedClassifier: public PacsetBaseModel<T, F> {
 	    std::vector<float> pred_mat(num_classes); 
 	    std::string modelfname = Config::getValue("modelfilename");
             
-#ifdef LAT_LOGGING
-	    //MemoryMapped mmapped_obj(modelfname.c_str(), 0);
-	    //MemoryMapped mmapped_obj(("/dat" + std::to_string(obsnum % NUM_FILES) + "/" + modelfname).c_str(), 0);
-            MemoryMapped mmapped_obj((modelfname + std::to_string(obsnum % num_files) + ".bin").c_str(), 0);
-#else
 	    MemoryMapped mmapped_obj(modelfname.c_str(), 0);
-#endif
 	    
 	    Node<T, F> *data = (Node<T, F>*)mmapped_obj.getData();
             std::unordered_set<int> blocks_accessed;
@@ -250,7 +242,7 @@ class PacsetGradientBoostedClassifier: public PacsetBaseModel<T, F> {
 	    if(num_classes == 2){
 		//std::cout<<pred_val<<"\n";
 		preds.clear();
-		float val = logit(pred_val/628.0);
+		float val = logit(pred_val/((float)total_num_trees/2.0));
      		if(val > 0.5)
 			preds.push_back(1.0);
 		else
@@ -293,11 +285,6 @@ class PacsetGradientBoostedClassifier: public PacsetBaseModel<T, F> {
 
             int num_classes = std::stoi(Config::getValue("numclasses"));
             int num_bins; 
-            std::string layout = Config::getValue("layout");
-            std::string num_threads = Config::getValue("numthreads");
-            std::string dataset = Config::getValue("datafilename");
-            std::string intertwine = Config::getValue("intertwine");
-            int batchsize = std::stoi(Config::getValue("batchsize"));
 
 	    std::vector<double> elapsed_arr;
             int blocks;
@@ -316,42 +303,10 @@ class PacsetGradientBoostedClassifier: public PacsetBaseModel<T, F> {
                 results.push_back((double)preds[0] / (double)preds[1] );    
             
 		auto end = std::chrono::steady_clock::now();
-#ifdef LAT_LOGGING
-		double elapsed = std::chrono::duration<double, std::milli>(end - start).count();
-	        cumi_time += elapsed;
-                if (ct % batchsize == 0){
-                    elapsed_arr.push_back(cumi_time);
-                    cumi_time = 0;
-                }	
-		
-#endif
 		ct+=1;
             }
 
-	    std::string log_dir = Config::getValue(std::string("logdir"));
-#ifdef BLOCK_LOGGING 
-            std::fstream fout;
-            std::string filename = log_dir + "Blocks_" + 
-                layout + "threads_" + num_threads +
-                + "intertwine_"  + intertwine + ".csv";
-            fout.open(filename, std::ios::out | std::ios::app);
-            for(auto i: num_blocks){
-                fout<<i<<",";
-            }
-            fout.close();
-#endif
 
-#ifdef LAT_LOGGING
-            std::fstream fout2;
-            std::string filename2 = log_dir + "latency_" +
-                layout + "threads_" + num_threads +
-                + "intertwine_"  + intertwine + ".csv";
-            fout2.open(filename2, std::ios::out | std::ios::app);
-            for(auto i: elapsed_arr){
-                fout2<<i<<",";
-            }
-            fout2.close();
-#endif
         }
 
         inline void serialize() {
