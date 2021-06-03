@@ -1,17 +1,12 @@
 //#include "config.h"
 #include "node.h"
 #include "stat_node.h"
-//#include "pacset_factory.h"
 #include "MemoryMapped.h"
-//#include "pacset_base_model.h"
 #include "pacset_base.h"
 #include "utils.h"
 #include "packer.h"
 #include "json_reader.h"
 #include "pacset_rf_classifier.h"
-//#include "pacset_rf_regressor.h"
-//#include "pacset_gb_regressor.h"
-//#include "pacset_gb_classifier.h"
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
 #include <pybind11/stl_bind.h>
@@ -50,66 +45,11 @@ py::class_<BlocksetBase>(m, "BlocksetBase")
 	.def("initRandomForestRegressor", &BlocksetBase::initRandomForestClassifier)
 	.def("initGradientBoostedClassifier", &BlocksetBase::initRandomForestClassifier)
 	.def("initGradientBoostedRegressor", &BlocksetBase::initRandomForestClassifier)
-	.def("loadAndPack", &BlocksetBase::loadAndPack)
-	.def("predict", &BlocksetBase::predict);
-/* 
-   py::class_<PacsetBaseModel<float, int>>(m, "PacsetBaseModel")
-        .def("setMembers", &PacsetBaseModel<float, int>::setMembers)
-        .def("setBinNodeSizes", &PacsetBaseModel<float, int>::setBinNodeSizes)
-        .def("pack", &PacsetBaseModel<float, int>::pack)
-        .def("loadModel", &PacsetBaseModel<float, int>::loadModel)
-        .def("predict", py::overload_cast<const std::vector<float>&, std::vector<int>&>(&PacsetBaseModel<float, int>::predict))
-	.def("predict", py::overload_cast<const std::vector<float>&, std::vector<double>&>(&PacsetBaseModel<float, int>::predict))
-        .def("predict", py::overload_cast<const std::vector<std::vector<float>>&, std::vector<int>&, std::vector<int>&, bool>(&PacsetBaseModel<float, int>::predict))
-        .def("predict", py::overload_cast<const std::vector<std::vector<float>>&, std::vector<double>&, std::vector<double>&, bool>(&PacsetBaseModel<float, int>::predict))
-        .def("serialize", &PacsetBaseModel<float, int>::serialize)
-        .def("deserialize", &PacsetBaseModel<float, int>::deserialize);
-py::class_< PacsetRandomForestClassifier<float, int>, PacsetBaseModel<float, int>>(m, "PacsetRandomForestClassifier");
-    	.def(py::init<>())
-	.def("setMembers", &PacsetRandomForestClassifier<float, int>::setMembers)
-        .def("setBinNodeSizes", &PacsetRandomForestClassifier<float, int>::setBinNodeSizes)
-        .def("pack", &PacsetRandomForestClassifier<float, int>::pack)
-        .def("loadModel", &PacsetRandomForestClassifier<float, int>::loadModel)
-        .def("predict", py::overload_cast<const std::vector<float>&, std::vector<int>&>(&PacsetRandomForestClassifier<float, int>::predict))
-	.def("predict", py::overload_cast<const std::vector<float>&, std::vector<double>&>(&PacsetRandomForestClassifier<float, int>::predict))
-        .def("predict", py::overload_cast<const std::vector<std::vector<float>>&, std::vector<int>&, std::vector<int>&, bool>(&PacsetRandomForestClassifier<float, int>::predict))
-        .def("predict", py::overload_cast<const std::vector<std::vector<float>>&, std::vector<double>&, std::vector<double>&, bool>(&PacsetRandomForestClassifier<float, int>::predict))
-        .def("serialize", &PacsetRandomForestClassifier<float, int>::serialize)
-        .def("deserialize", &PacsetRandomForestClassifier<float, int>::deserialize);
-    py::class_<PacsetRandomForestRegressor<float, int>, PacsetBaseModel<float, int>>(m, "PacsetRandomForestRegressor")
-        .def("setMembers", &PacsetRandomForestRegressor<float, int>::setMembers)
-        .def("setBinNodeSizes", &PacsetRandomForestRegressor<float, int>::setBinNodeSizes)
-        .def("pack", &PacsetRandomForestRegressor<float, int>::pack)
-        .def("loadModel", &PacsetRandomForestRegressor<float, int>::loadModel)
-        .def("predict", py::overload_cast<const std::vector<float>&, std::vector<int>&>(&PacsetRandomForestRegressor<float, int>::predict))
-	.def("predict", py::overload_cast<const std::vector<float>&, std::vector<double>&>(&PacsetRandomForestRegressor<float, int>::predict))
-        .def("predict", py::overload_cast<const std::vector<std::vector<float>>&, std::vector<int>&, std::vector<int>&, bool>(&PacsetRandomForestRegressor<float, int>::predict))
-        .def("predict", py::overload_cast<const std::vector<std::vector<float>>&, std::vector<double>&, std::vector<double>&, bool>(&PacsetRandomForestRegressor<float, int>::predict))
-        .def("serialize", &PacsetRandomForestRegressor<float, int>::serialize)
-        .def("deserialize", &PacsetRandomForestRegressor<float, int>::deserialize);
-    
-    py::class_<PacsetGradientBoostedClassifier<float, int>, PacsetBaseModel<float, int>>(m, "PacsetGradientBoostedClassifier")
-        .def("setMembers", &PacsetGradientBoostedClassifier<float, int>::setMembers)
-        .def("setBinNodeSizes", &PacsetGradientBoostedClassifier<float, int>::setBinNodeSizes)
-        .def("pack", &PacsetGradientBoostedClassifier<float, int>::pack)
-        .def("loadModel", &PacsetGradientBoostedClassifier<float, int>::loadModel)
-        .def("predict", py::overload_cast<const std::vector<float>&, std::vector<int>&>(&PacsetGradientBoostedClassifier<float, int>::predict))
-	.def("predict", py::overload_cast<const std::vector<float>&, std::vector<double>&>(&PacsetGradientBoostedClassifier<float, int>::predict))
-        .def("predict", py::overload_cast<const std::vector<std::vector<float>>&, std::vector<int>&, std::vector<int>&, bool>(&PacsetGradientBoostedClassifier<float, int>::predict))
-        .def("predict", py::overload_cast<const std::vector<std::vector<float>>&, std::vector<double>&, std::vector<double>&, bool>(&PacsetGradientBoostedClassifier<float, int>::predict))
-        .def("serialize", &PacsetGradientBoostedClassifier<float, int>::serialize)
-        .def("deserialize", &PacsetGradientBoostedClassifier<float, int>::deserialize);
-    
-    py::class_<PacsetGradientBoostedRegressor<float, int>, PacsetBaseModel<float, int>>(m, "PacsetGradientBoostedRegressor")
-        .def("setMembers", &PacsetGradientBoostedRegressor<float, int>::setMembers)
-        .def("setBinNodeSizes", &PacsetGradientBoostedRegressor<float, int>::setBinNodeSizes)
-        .def("pack", &PacsetGradientBoostedRegressor<float, int>::pack)
-        .def("loadModel", &PacsetGradientBoostedRegressor<float, int>::loadModel)
-        .def("predict", py::overload_cast<const std::vector<float>&, std::vector<int>&>(&PacsetGradientBoostedRegressor<float, int>::predict))
-	.def("predict", py::overload_cast<const std::vector<float>&, std::vector<double>&>(&PacsetGradientBoostedRegressor<float, int>::predict))
-        .def("predict", py::overload_cast<const std::vector<std::vector<float>>&, std::vector<int>&, std::vector<int>&, bool>(&PacsetGradientBoostedRegressor<float, int>::predict))
-        .def("predict", py::overload_cast<const std::vector<std::vector<float>>&, std::vector<double>&, std::vector<double>&, bool>(&PacsetGradientBoostedRegressor<float, int>::predict))
-        .def("serialize", &PacsetGradientBoostedRegressor<float, int>::serialize)
-        .def("deserialize", &PacsetGradientBoostedRegressor<float, int>::deserialize);
-*/
+	.def("loadJSONModel", &BlocksetBase::loadJSONModel)
+	.def("loadBlocksetModel", &BlocksetBase::loadBlocksetModel)
+	.def("pack", py::overload_cast<std::string>(&BlocksetBase::pack))
+	.def("pack", py::overload_cast<>(&BlocksetBase::pack))
+	.def("serialize", &BlocksetBase::serialize)
+	.def("predict", py::overload_cast<std::vector<float>> (&BlocksetBase::predict))
+	.def("predict", py::overload_cast<std::vector<std::vector<float>>> (&BlocksetBase::predict));
 }
