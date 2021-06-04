@@ -65,7 +65,7 @@ void BlocksetBase::pack(){
 	if(Config::getValue(std::string("blocksize")) == std::string("notfound"))
 		Config::setConfigItem(std::string("blocksize"), std::string("128"));
 	if(Config::getValue(std::string("layout")) == std::string("notfound"))
-		Config::setConfigItem(std::string("layout"), std::string("binblockstat"));
+		Config::setConfigItem(std::string("layout"), std::string("binbfs"));
 	if(Config::getValue(std::string("interleave")) == std::string("notfound"))
 		Config::setConfigItem(std::string("interleave"), std::string("1"));
 	Config::setConfigItem(std::string("numthreads"), std::string("1")) ;
@@ -82,13 +82,34 @@ void BlocksetBase::serialize(std::string filename){
 	obj->serialize();
 }
 
-double BlocksetBase::predictLabel(std::vector<float> X){
-	std::vector<int> preds;
-        std::vector<int> predi;
+int BlocksetBase::predictLabelClassification(std::vector<float> X){
 	std::vector<std::vector<float>> obs;
 	obs.push_back(X);
-        
-	obj->predict(obs, preds, predi, true);
-	return predi[0];
+	if(Config::getConfigItem("algorithm") == std::string("randomforest")){
+		std::vector<int> preds;
+        	std::vector<int> predi;
+		obj->predict(obs, preds, predi, true);
+		return predi[0];
+	}else{
+		std::vector<float> preds;
+        	std::vector<float> predi;
+		obj->predict(obs, preds, predi, true);
+		return predi[0];
+	}
+}
+
+std::vector<int> BlocksetBase::predictLabelClassification(std::vector<std::vector<float>> X){
+	
+	if(Config::getConfigItem("algorithm") == std::string("randomforest")){
+		std::vector<int> preds;
+        	std::vector<int> predi;
+        	obj->predict(X, preds, predi, true);
+		return predi;
+	}else{
+		std::vector<float> preds;
+        	std::vector<float> predi;
+        	obj->predict(X, preds, predi, true);
+		return predi;
+	}
 }
 

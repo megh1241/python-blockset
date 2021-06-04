@@ -50,7 +50,7 @@ py::class_<BlocksetBase>(m, "BlocksetBase")
 	.def("pack", py::overload_cast<std::string>(&BlocksetBase::pack))
 	.def("pack", py::overload_cast<>(&BlocksetBase::pack))
 	.def("serialize", &BlocksetBase::serialize)
-	.def("predictLabel", &BlocksetBase::predictLabel);
-	//.def("predict", py::overload_cast<std::vector<float>> (&BlocksetBase::predict));
-	//.def("predict", py::overload_cast<std::vector<std::vector<float>>> (&BlocksetBase::predict));
+	//.def("predictLabel", &BlocksetBase::predictLabel);
+	.def("predictLabel", py::overload_cast<std::vector<float>> (&BlocksetBase::predictLabel))
+	.def("predictLabel", py::overload_cast<std::vector<std::vector<float>>> (&BlocksetBase::predictLabel));
 }

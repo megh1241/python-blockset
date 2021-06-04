@@ -38,20 +38,11 @@ class PacsetRandomForestClassifier: public PacsetBaseModel<T, F> {
 				const std::vector<int> &bin_node_sizes,
 				const std::vector<std::vector<int>> &bin_start){
 
-			std::cout<<"sisze here1: "<<"\n";
-			std::cout<<PacsetBaseModel<T, F>::bin_sizes.size()<<"\n";
-			for(auto i : PacsetBaseModel<T, F>::bin_sizes){
-				std::cout<<"bin size: "<<i<<"\n";
-			}
 			std::copy(bin_sizes.begin(), bin_sizes.end(), back_inserter(PacsetBaseModel<T, F>::bin_sizes)); 
 			std::copy(bin_node_sizes.begin(), bin_node_sizes.end(), back_inserter(PacsetBaseModel<T, F>::bin_node_sizes)); 
 			for (auto i: bin_start)
 				PacsetBaseModel<T, F>::bin_start.push_back(i);  
 		
-			std::cout<<"sisze here:2 "<<"\n";
-			std::cout<<PacsetBaseModel<T, F>::bin_sizes.size()<<"\n";
-			for(auto i: PacsetBaseModel<T, F>::bin_sizes)
-				std::cout<<i<<"\n";
 		}
 
 		inline void setBinNodeSizes(int pos, int siz){
@@ -61,9 +52,6 @@ class PacsetRandomForestClassifier: public PacsetBaseModel<T, F> {
 
 		inline void loadModel() {
 			JSONReader<T, F> J;
-			//J.convertSklToBins(PacsetBaseModel<T, F>::bins, 
-			std::cout<<"enter here\n";
-			fflush(stdout);
 			J.convertSklToBinsRapidJson(PacsetBaseModel<T, F>::bins, 
 					PacsetBaseModel<T, F>::bin_sizes, 
 					PacsetBaseModel<T, F>::bin_start,
@@ -159,7 +147,6 @@ class PacsetRandomForestClassifier: public PacsetBaseModel<T, F> {
 			int num_threads = std::stoi(Config::getValue("numthreads"));
 			int num_bins = PacsetBaseModel<T, F>::bin_sizes.size();
 			std::string modelfname = Config::getValue("modelfilename");
-			std::cout<<num_classes<<"\n";	
 			MemoryMapped mmapped_obj(modelfname.c_str(), 0);
 			Node<T, F> *data = (Node<T, F>*)mmapped_obj.getData();
 
@@ -357,7 +344,6 @@ class PacsetRandomForestClassifier: public PacsetBaseModel<T, F> {
 		inline void serialize() {
 			std::string format = Config::getValue("format");
 			serializeMetadata();
-			std::cout<<"done metadata\n";
 			if(format == std::string("binary")){
 			    serializeModelBinary();
 			}
@@ -408,7 +394,6 @@ class PacsetRandomForestClassifier: public PacsetBaseModel<T, F> {
 				temp.clear();
 			}
 			f.close();
-			std::cout<<"size: "<<num_trees_bin.size()<<"\n";
 			setMembers(num_trees_bin, num_nodes_bin, bin_tree_start);
 
 		}

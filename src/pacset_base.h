@@ -27,6 +27,7 @@ class BlocksetBase{
 	void pack();
 	void serialize(std::string filename);
 	double predictLabel(std::vector<float> X);
+	std::vector<int> predictLabel(std::vector<std::vector<float>> X);
 };
 
 #endif

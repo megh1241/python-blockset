@@ -12,7 +12,6 @@ sklearn_save_filename = 'iris_sklearn_model.json'
 blockset_save_filename = 'iris_blockset_model.json'
 iris = datasets.load_iris()
 '''
-print(iris.target)
 sklearn_rf_model = RandomForestClassifier(n_estimators=num_trees, n_jobs=-1)
 sklearn_rf_model.fit(iris.data, iris.target)
 
@@ -30,18 +29,14 @@ model.serialize(blockset_save_filename)
 model = ensemble.BlocksetBase()
 model.initRandomForestClassifier()
 model.loadBlocksetModel(blockset_save_filename)
-#print(iris.data[0])
-iter1=0
-wrong = 0
-for i in iris.data:
-    labels = model.predict(i)
-    print(labels)
-    print(iris.target[iter1])
-    if labels != iris.target[iter1]:
-        wrong+=1
-    iter1+=1
-print('wrong: ')
-print(wrong)
+label_vec = []
 
-#score = accuracy_score(iris.target, labels)
-#print(score)
+'''
+for test in iris.data:
+    label = model.predict(test)
+    label_vec.append(label)
+'''
+label_vec = model.predict(iris.data)
+score = accuracy_score(iris.target, label_vec)
+print("accuracy score: ", end="")
+print(score)
