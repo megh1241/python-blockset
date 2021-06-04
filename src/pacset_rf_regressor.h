@@ -185,13 +185,7 @@ class PacsetRandomForestRegressor: public PacsetBaseModel<T, F> {
                 do{
                     number_not_in_leaf = 0;
                     for( i=0; i<siz; ++i){
-			//std::cout<<curr_node[i]<<"\n";
 		        if(curr_node[i] > 0){
-#ifdef BLOCK_LOGGING 
-                    	    block_number = (curr_node[i] + block_offset)/ BLOCK_SIZE;
-#pragma omp critical
-                            blocks_accessed.insert(block_number);
-#endif
                             feature_num = bin[curr_node[i]].getFeature();
                             feature_val = observation[feature_num];
                             if(bin[curr_node[i]].getLeft() == -1){
@@ -210,14 +204,12 @@ class PacsetRandomForestRegressor: public PacsetBaseModel<T, F> {
                 double sum=0;
                 for(i=0; i<siz; ++i){
                     sum += last_node[i];
-                }
-#pragma omp critical
-                {
+		}
                 leaf_sum +=sum;
                 block_offset += PacsetBaseModel<T, F>::bin_node_sizes[bin_counter];
-                }
 
             }
+	   
             preds.clear();
             preds.push_back((double)leaf_sum);
             preds.push_back((double)total_num_trees);

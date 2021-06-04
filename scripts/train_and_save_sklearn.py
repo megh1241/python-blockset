@@ -69,7 +69,7 @@ def write_to_json(model1, filename, regression=False):
         values = estimator.tree_.__getstate__()['values']
         for i in range(length):
             if newnodes[i][0] == -1:
-                newnodes[i][2] = argmax_1(list(values[i][0]))
+                newnodes[i][3] = argmax_1(list(values[i][0]))
     
         new_dict['estimators']['nodes'].append(newnodes)
         final_count = count

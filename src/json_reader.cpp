@@ -236,7 +236,7 @@ void JSONReader<T, F>::convertSklToBinsRapidJson(std::vector<std::vector<StatNod
             right = nodes[j][1].GetInt();
             feature = nodes[j][2].GetInt();
             threshold = (float)nodes[j][3].GetDouble();
-            cardinality = nodes[j][4].GetInt();
+	    cardinality = nodes[j][4].GetInt();
 	    if (j==0) depth = 0;
 	    else depth = 1;
             //Internal node

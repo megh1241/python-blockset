@@ -16,19 +16,17 @@ def write_to_json(model1, filename, regression=False):
         values = estimator.tree_.__getstate__()['values']
         for i in range(length):
             if newnodes[i][0] == -1:
-                newnodes[i][2] = argmax_1(list(values[i][0]))
-
+                newnodes[i][3] = values[i][0][0] 
         new_dict['estimators']['nodes'].append(newnodes)
-        final_count = count
+        final_count += 1
 
     if regression:
         new_dict['n_classes'] = -1
     else:
         new_dict['n_classes'] = model1.n_classes_
 
-    new_dict['n_estimators'] = final_count+1
+    new_dict['n_estimators'] = final_count
     json_obj = json.dumps(new_dict)
-    print('finish dumping')
     with open(filename, "w") as outfile:
         outfile.write(json_obj)
 
@@ -58,6 +56,5 @@ def write_to_json_gbt(model, filename, regression=False):
 
     new_dict['n_estimators'] = final_count
     json_obj = json.dumps(new_dict)
-    print('finish dumping')
     with open(filename, "w") as outfile:
         outfile.write(json_obj)

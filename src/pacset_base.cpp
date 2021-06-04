@@ -49,7 +49,7 @@ void BlocksetBase::pack(std::string filename){
 	if(Config::getValue(std::string("blocksize")) == std::string("notfound"))
 		Config::setConfigItem(std::string("blocksize"), std::string("128"));
 	if(Config::getValue(std::string("layout")) == std::string("notfound"))
-		Config::setConfigItem(std::string("layout"), std::string("binbfs"));
+		Config::setConfigItem(std::string("layout"), std::string("bindfs"));
 	if(Config::getValue(std::string("interleave")) == std::string("notfound"))
 		Config::setConfigItem(std::string("interleave"), std::string("1"));
 	Config::setConfigItem(std::string("numthreads"), std::string("1")) ;
@@ -65,7 +65,7 @@ void BlocksetBase::pack(){
 	if(Config::getValue(std::string("blocksize")) == std::string("notfound"))
 		Config::setConfigItem(std::string("blocksize"), std::string("128"));
 	if(Config::getValue(std::string("layout")) == std::string("notfound"))
-		Config::setConfigItem(std::string("layout"), std::string("binbfs"));
+		Config::setConfigItem(std::string("layout"), std::string("binblockstatdfs"));
 	if(Config::getValue(std::string("interleave")) == std::string("notfound"))
 		Config::setConfigItem(std::string("interleave"), std::string("2"));
 	Config::setConfigItem(std::string("numthreads"), std::string("1")) ;
