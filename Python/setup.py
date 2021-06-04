@@ -136,7 +136,7 @@ class BuildExt(build_ext):
                 ext.extra_link_args = ["-lgomp"]
         build_ext.build_extensions(self)
 setup(
-    name="pyblockset",
+    name="blockset",
     version=__version__,
     author="Meghana Madhyastha",
     author_email="meghana.madhyastha@gmail.com",
