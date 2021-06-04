@@ -42,15 +42,17 @@ py::class_<Config>(m, "Config")
 py::class_<BlocksetBase>(m, "BlocksetBase")
 	.def(py::init<>())
 	.def("initRandomForestClassifier", &BlocksetBase::initRandomForestClassifier)
-	.def("initRandomForestRegressor", &BlocksetBase::initRandomForestClassifier)
-	.def("initGradientBoostedClassifier", &BlocksetBase::initRandomForestClassifier)
-	.def("initGradientBoostedRegressor", &BlocksetBase::initRandomForestClassifier)
+	.def("initRandomForestRegressor", &BlocksetBase::initRandomForestRegressor)
+	.def("initGradientBoostedClassifier", &BlocksetBase::initGradientBoostedClassifier)
+	.def("initGradientBoostedRegressor", &BlocksetBase::initGradientBoostedRegressor)
 	.def("loadJSONModel", &BlocksetBase::loadJSONModel)
 	.def("loadBlocksetModel", &BlocksetBase::loadBlocksetModel)
 	.def("pack", py::overload_cast<std::string>(&BlocksetBase::pack))
 	.def("pack", py::overload_cast<>(&BlocksetBase::pack))
 	.def("serialize", &BlocksetBase::serialize)
 	//.def("predictLabel", &BlocksetBase::predictLabel);
-	.def("predictLabel", py::overload_cast<std::vector<float>> (&BlocksetBase::predictLabel))
-	.def("predictLabel", py::overload_cast<std::vector<std::vector<float>>> (&BlocksetBase::predictLabel));
+	.def("predictLabelClassification", py::overload_cast<std::vector<float>> (&BlocksetBase::predictLabelClassification))
+	.def("predictLabelClassification", py::overload_cast<std::vector<std::vector<float>>> (&BlocksetBase::predictLabelClassification))
+	.def("predictLabelRegression", py::overload_cast<std::vector<float>> (&BlocksetBase::predictLabelRegression))
+	.def("predictLabelRegression", py::overload_cast<std::vector<std::vector<float>>> (&BlocksetBase::predictLabelRegression));
 }

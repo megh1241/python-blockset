@@ -3,6 +3,7 @@ import pyblockset
 class BlocksetBase():
     def __init__(self):
         self.model = pyblockset.BlocksetBase()
+        self.task='c'
 
     def initRandomForestClassifier(self):
         self.model.initRandomForestClassifier()
@@ -12,9 +13,11 @@ class BlocksetBase():
 
     def initRandomForestRegressor(self):
         self.model.initRandomForestRegressor()
+        self.task='r'
 
     def initGradientBoostedRegressor(self):
         self.model.initGradientBoostedRegressor()
+        self.task='r'
 
     def loadJSONModel(self, filename):
         self.model.loadJSONModel(filename)
@@ -32,4 +35,7 @@ class BlocksetBase():
         self.model.serialize(filename)
     
     def predict(self, X):
-        return self.model.predictLabel(X)
+        if self.task == 'r':
+            return self.model.predictLabelRegression(X)
+        else:
+            return self.model.predictLabelClassification(X)

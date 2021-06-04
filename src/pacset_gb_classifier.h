@@ -156,7 +156,7 @@ class PacsetGradientBoostedClassifier: public PacsetBaseModel<T, F> {
             std::vector<std::vector<float> > result_mat(
     					num_boosters,
     			std::vector<float>(num_classes)) ;
-	   
+	  
 	    std::vector<float> pred_mat(num_classes); 
 	    std::string modelfname = Config::getValue("modelfilename");
             
@@ -216,12 +216,9 @@ class PacsetGradientBoostedClassifier: public PacsetBaseModel<T, F> {
                             feature_num = bin[curr_node[i]].getFeature();
                             feature_val = observation[feature_num];
                             if(bin[curr_node[i]].getLeft() == -1){
-#pragma omp critical
-				    {
-				if(num_classes == 2)
+				    if(num_classes == 2)
 					pred_val += bin[curr_node[i]].getThreshold();
 				pred_mat[(bin_tree_offset+i) % num_classes] += bin[curr_node[i]].getThreshold();
-				    }
                                 curr_node[i] = -1;
 			    }
 			    else {
@@ -240,7 +237,6 @@ class PacsetGradientBoostedClassifier: public PacsetBaseModel<T, F> {
 
             }
 	    if(num_classes == 2){
-		//std::cout<<pred_val<<"\n";
 		preds.clear();
 		float val = logit(pred_val/((float)total_num_trees/2.0));
      		if(val > 0.5)
@@ -250,7 +246,7 @@ class PacsetGradientBoostedClassifier: public PacsetBaseModel<T, F> {
 	    }else{
 		std::vector<float>result_mat_proba(pred_mat);
 //std::vector<float>result_mat_proba;
-		result_mat_proba = logit(pred_mat);
+		//result_mat_proba = logit(pred_mat);
 	    int max = result_mat_proba[0];
 	    int maxid = 0;
 	    for(int i=0; i<num_classes; ++i){
