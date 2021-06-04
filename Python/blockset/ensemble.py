@@ -15,3 +15,18 @@ class BlocksetBase():
 
     def initGradientBoostedRegressor(self):
         self.model.initGradientBoostedRegressor()
+
+    def loadJSONModel(self, filename):
+        self.model.loadJSONModel(filename)
+    
+    def loadBlocksetModel(self, filename):
+        self.model.loadBlocksetModel(filename)
+    
+    def pack(self, filename):
+        self.model.pack(filename)
+    
+    def pack(self):
+        self.model.pack()
+    
+    def predict(X):
+        return self.model.predict(X)
