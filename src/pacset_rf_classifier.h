@@ -38,10 +38,20 @@ class PacsetRandomForestClassifier: public PacsetBaseModel<T, F> {
 				const std::vector<int> &bin_node_sizes,
 				const std::vector<std::vector<int>> &bin_start){
 
+			std::cout<<"sisze here1: "<<"\n";
+			std::cout<<PacsetBaseModel<T, F>::bin_sizes.size()<<"\n";
+			for(auto i : PacsetBaseModel<T, F>::bin_sizes){
+				std::cout<<"bin size: "<<i<<"\n";
+			}
 			std::copy(bin_sizes.begin(), bin_sizes.end(), back_inserter(PacsetBaseModel<T, F>::bin_sizes)); 
 			std::copy(bin_node_sizes.begin(), bin_node_sizes.end(), back_inserter(PacsetBaseModel<T, F>::bin_node_sizes)); 
 			for (auto i: bin_start)
 				PacsetBaseModel<T, F>::bin_start.push_back(i);  
+		
+			std::cout<<"sisze here:2 "<<"\n";
+			std::cout<<PacsetBaseModel<T, F>::bin_sizes.size()<<"\n";
+			for(auto i: PacsetBaseModel<T, F>::bin_sizes)
+				std::cout<<i<<"\n";
 		}
 
 		inline void setBinNodeSizes(int pos, int siz){
@@ -66,7 +76,6 @@ class PacsetRandomForestClassifier: public PacsetBaseModel<T, F> {
 
 			auto bin = PacsetBaseModel<T, F>::bins[0];
 			int num_bins = std::stoi(Config::getValue("numthreads"));
-			std::cout<<"Before pack\n";
 			for(int i=0; i<num_bins; ++i){
 				Packer<T, F> packer_obj(layout);
 				if(Config::getValue("intertwine") != std::string("notfound"))
@@ -77,7 +86,6 @@ class PacsetRandomForestClassifier: public PacsetBaseModel<T, F> {
 						PacsetBaseModel<T, F>::bin_start[i] 
 					       );
 				setBinNodeSizes(i, PacsetBaseModel<T, F>::bins[i].size());
-			std::cout<<"after pack\n";
 			}
 		}
 
@@ -151,6 +159,7 @@ class PacsetRandomForestClassifier: public PacsetBaseModel<T, F> {
 			int num_threads = std::stoi(Config::getValue("numthreads"));
 			int num_bins = PacsetBaseModel<T, F>::bin_sizes.size();
 			std::string modelfname = Config::getValue("modelfilename");
+			std::cout<<num_classes<<"\n";	
 			MemoryMapped mmapped_obj(modelfname.c_str(), 0);
 			Node<T, F> *data = (Node<T, F>*)mmapped_obj.getData();
 
@@ -163,7 +172,7 @@ class PacsetRandomForestClassifier: public PacsetBaseModel<T, F> {
 				offsets.push_back(curr_offset);
 				curr_offset += val;
 			}
-#pragma omp parallel for num_threads(num_threads)
+//#pragma omp parallel for num_threads(num_threads)
 			for(int bin_counter=0; bin_counter<num_bins; ++bin_counter){
 				int block_number = 0;
 				Node<T, F> *bin  = data + offsets[bin_counter];
@@ -172,25 +181,14 @@ class PacsetRandomForestClassifier: public PacsetBaseModel<T, F> {
 				int i, feature_num=0, number_not_in_leaf=0;
 				T feature_val;
 				int siz = PacsetBaseModel<T, F>::bin_sizes[bin_counter];
-
 				for(i=0; i<siz; ++i){
 					curr_node[i] = PacsetBaseModel<T, F>::bin_start[bin_counter][i];
 					__builtin_prefetch(&bin[curr_node[i]], 0, 3);
-#ifdef BLOCK_LOGGING 
-					block_number = (curr_node[i] + block_offset) / BLOCK_SIZE;
-#pragma omp critical
-					blocks_accessed.insert(block_number);
-#endif
 				}
 				do{
 					number_not_in_leaf = 0;
 					for( i=0; i<siz; ++i){
 						if(bin[curr_node[i]].isInternalNodeFront()){
-#ifdef BLOCK_LOGGING 
-							block_number = (curr_node[i] + block_offset)/ BLOCK_SIZE;
-#pragma omp critical
-							blocks_accessed.insert(block_number);
-#endif
 							feature_num = bin[curr_node[i]].getFeature();
 							feature_val = observation[feature_num];
 							curr_node[i] = bin[curr_node[i]].nextNode(feature_val);
@@ -201,19 +199,15 @@ class PacsetRandomForestClassifier: public PacsetBaseModel<T, F> {
 				}while(number_not_in_leaf);
 
 				for(i=0; i<siz; ++i){
-#pragma omp atomic update
+//#pragma omp atomic update
 					++preds[bin[curr_node[i]].getClass()];
 				}
 
-#pragma omp critical
+//#pragma omp critical
 				block_offset += PacsetBaseModel<T, F>::bin_node_sizes[bin_counter];
 			}
 			mmapped_obj.close();
-#ifdef BLOCK_LOGGING 
-			return blocks_accessed.size();
-#else
 			return 0;
-#endif
 		}
 		std::pair<int, int> transformIndex(int node_number, int bin_start_list, int bin_number){
 			return std::make_pair(bin_start_list + node_number/blob_size, node_number % blob_size);
@@ -414,6 +408,7 @@ class PacsetRandomForestClassifier: public PacsetBaseModel<T, F> {
 				temp.clear();
 			}
 			f.close();
+			std::cout<<"size: "<<num_trees_bin.size()<<"\n";
 			setMembers(num_trees_bin, num_nodes_bin, bin_tree_start);
 
 		}

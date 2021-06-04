@@ -35,6 +35,8 @@ void BlocksetBase::loadJSONModel(std::string filename){
 
 void BlocksetBase::loadBlocksetModel(std::string filename){
 	Config::setConfigItem(std::string("modelfilename"), filename);
+	Config::setConfigItem(std::string("metadatafilename"), filename + "metadata.txt");
+	Config::setConfigItem(std::string("numthreads"), std::string("1")) ;
 	obj->deserialize();
 }
 
@@ -47,9 +49,9 @@ void BlocksetBase::pack(std::string filename){
 	if(Config::getValue(std::string("blocksize")) == std::string("notfound"))
 		Config::setConfigItem(std::string("blocksize"), std::string("128"));
 	if(Config::getValue(std::string("layout")) == std::string("notfound"))
-		Config::setConfigItem(std::string("layout"), std::string("binstatblock"));
+		Config::setConfigItem(std::string("layout"), std::string("bindfs"));
 	if(Config::getValue(std::string("interleave")) == std::string("notfound"))
-		Config::setConfigItem(std::string("interleave"), std::string("2"));
+		Config::setConfigItem(std::string("interleave"), std::string("1"));
 	Config::setConfigItem(std::string("numthreads"), std::string("1")) ;
 	
 	obj->loadModel();
@@ -63,9 +65,9 @@ void BlocksetBase::pack(){
 	if(Config::getValue(std::string("blocksize")) == std::string("notfound"))
 		Config::setConfigItem(std::string("blocksize"), std::string("128"));
 	if(Config::getValue(std::string("layout")) == std::string("notfound"))
-		Config::setConfigItem(std::string("layout"), std::string("binstatblock"));
+		Config::setConfigItem(std::string("layout"), std::string("binblockstat"));
 	if(Config::getValue(std::string("interleave")) == std::string("notfound"))
-		Config::setConfigItem(std::string("interleave"), std::string("2"));
+		Config::setConfigItem(std::string("interleave"), std::string("1"));
 	Config::setConfigItem(std::string("numthreads"), std::string("1")) ;
         obj->pack();
 }
@@ -80,19 +82,13 @@ void BlocksetBase::serialize(std::string filename){
 	obj->serialize();
 }
 
-std::vector<double> BlocksetBase::predict(std::vector<std::vector<float>> X){
-	std::vector<double> preds;
-        std::vector<double> predi;
-        obj->predict(X, preds, predi, true);
-	return predi;
-}
-
-double BlocksetBase::predict(std::vector<float> X){
-	std::vector<double> preds;
-        std::vector<double> predi;
+double BlocksetBase::predictLabel(std::vector<float> X){
+	std::vector<int> preds;
+        std::vector<int> predi;
 	std::vector<std::vector<float>> obs;
 	obs.push_back(X);
-        obj->predict(obs, preds, predi, true);
+        
+	obj->predict(obs, preds, predi, true);
 	return predi[0];
 }
 

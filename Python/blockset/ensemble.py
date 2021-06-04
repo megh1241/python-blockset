@@ -31,5 +31,5 @@ class BlocksetBase():
     def serialize(self, filename):
         self.model.serialize(filename)
     
-    def predict(X):
-        return self.model.predict(X)
+    def predict(self, X):
+        return self.model.predictLabel(X)
