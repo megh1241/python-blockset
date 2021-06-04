@@ -28,5 +28,8 @@ class BlocksetBase():
     def pack(self):
         self.model.pack()
     
+    def serialize(self, filename):
+        self.model.serialize(filename)
+    
     def predict(X):
         return self.model.predict(X)

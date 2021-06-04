@@ -614,13 +614,7 @@ class Packer{
 			std::cout<<"initial queue size: "<<bin_q.size()<<"\n";	
 			std::cout<<"num classes: "<<num_classes<<"\n";
 			std::sort(bin_q.begin(), bin_q.end(), [this](auto l, auto r){return compCard(l, r);} );
-			for(int i=0; i< num_classes; ++i){
-				bin[i].setSTNum(-1);
-				class_numST_map[i] = 0;
-			}
 
-			//	for(int i=num_classes ; i<finalbin.size(); ++i)
-			//		node_to_index.insert(std::pair<int, int>(finalbin[i].getID(), i)); 
 
 			int subtree_count = 0;
 
@@ -632,6 +626,7 @@ class Packer{
 			int pos_in_block = 0;
 			int subtree_num = -1;
 			pos_in_block = (finalbin.size()-1) % block_size;
+			
 			int subtree_flag = 0;
 			while(!bin_q.empty()){
 				//If we are at the beginning of a block, then we pop from the back of the queue (i.e we take a new "tree")
