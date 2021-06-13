@@ -47,11 +47,11 @@ void BlocksetBase::pack(std::string filename){
 	if(Config::getValue(std::string("numbins")) == std::string("notfound"))
 		Config::setConfigItem(std::string("numbins"), std::string("1"));
 	if(Config::getValue(std::string("blocksize")) == std::string("notfound"))
-		Config::setConfigItem(std::string("blocksize"), std::string("128"));
+		Config::setConfigItem(std::string("blocksize"), std::string("124"));
 	if(Config::getValue(std::string("layout")) == std::string("notfound"))
-		Config::setConfigItem(std::string("layout"), std::string("bindfs"));
-	if(Config::getValue(std::string("interleave")) == std::string("notfound"))
-		Config::setConfigItem(std::string("interleave"), std::string("1"));
+		Config::setConfigItem(std::string("layout"), std::string("binbfs"));
+	if(Config::getValue(std::string("intertwine")) == std::string("notfound"))
+		Config::setConfigItem(std::string("interwine"), std::string("1"));
 	Config::setConfigItem(std::string("numthreads"), std::string("1")) ;
 	
 	obj->loadModel();
@@ -65,9 +65,9 @@ void BlocksetBase::pack(){
 	if(Config::getValue(std::string("blocksize")) == std::string("notfound"))
 		Config::setConfigItem(std::string("blocksize"), std::string("128"));
 	if(Config::getValue(std::string("layout")) == std::string("notfound"))
-		Config::setConfigItem(std::string("layout"), std::string("binblockstatdfs"));
-	if(Config::getValue(std::string("interleave")) == std::string("notfound"))
-		Config::setConfigItem(std::string("interleave"), std::string("2"));
+		Config::setConfigItem(std::string("layout"), std::string("binblockstat"));
+	if(Config::getValue(std::string("intertwine")) == std::string("notfound"))
+		Config::setConfigItem(std::string("intertwine"), std::string("1"));
 	Config::setConfigItem(std::string("numthreads"), std::string("1")) ;
         obj->pack();
 }

@@ -40,7 +40,7 @@ class PacsetGradientBoostedRegressor: public PacsetBaseModel<T, F> {
                     PacsetBaseModel<T, F>::bin_sizes, 
                     PacsetBaseModel<T, F>::bin_start,
                     PacsetBaseModel<T, F>::bin_node_sizes);
-        }
+	}
 
         inline void pack(){
             std::string layout = Config::getValue("layout");
@@ -48,12 +48,13 @@ class PacsetGradientBoostedRegressor: public PacsetBaseModel<T, F> {
             
 	    int num_bins = std::stoi(Config::getValue("numthreads"));
             for(int i=0; i<num_bins; ++i){
-                Packer<T, F> packer_obj(layout);
+		Packer<T, F> packer_obj(layout);
                 if(Config::getValue("intertwine") != std::string("notfound"))
                     packer_obj.setDepthIntertwined(std::atoi(Config::getValue("intertwine").c_str()));
                
                 //should pack in place
-                packer_obj.pack(PacsetBaseModel<T, F>::bins[i], 
+                
+		packer_obj.pack(PacsetBaseModel<T, F>::bins[i], 
                         PacsetBaseModel<T, F>::bin_sizes[i],
                         PacsetBaseModel<T, F>::bin_start[i] 
                         );
@@ -63,8 +64,8 @@ class PacsetGradientBoostedRegressor: public PacsetBaseModel<T, F> {
 
         inline int predict(const std::vector<T>& observation, std::vector<double> &preds) {
             int num_classes = std::stoi(Config::getValue("numclasses"));
-            int num_threads = std::stoi(Config::getValue("numthreads"));
-            
+            //int num_threads = std::stoi(Config::getValue("numthreads"));
+            int num_threads = 1;
 	    int num_bins = PacsetBaseModel<T, F>::bins.size();
             int total_num_trees = 0;
             double leaf_sum = 0;
@@ -78,12 +79,12 @@ class PacsetGradientBoostedRegressor: public PacsetBaseModel<T, F> {
             for(int bin_counter=0; bin_counter<num_bins; ++bin_counter){
                 auto bin = PacsetBaseModel<T, F>::bins[bin_counter];
 
-                std::vector<int> curr_node(PacsetBaseModel<T, F>::bin_node_sizes[bin_counter]);
-                std::vector<double> last_node(PacsetBaseModel<T, F>::bin_node_sizes[bin_counter]);
+                std::vector<int> curr_node(PacsetBaseModel<T, F>::bin_node_sizes[bin_counter], 0);
+                std::vector<double> last_node(PacsetBaseModel<T, F>::bin_node_sizes[bin_counter], 0.0);
                 int i, feature_num=0, number_not_in_leaf=0;
                 T feature_val;
                 int siz = PacsetBaseModel<T, F>::bin_sizes[bin_counter];
-                total_num_trees = siz;
+                total_num_trees += siz;
                 for(i=0; i<siz; ++i){
                     curr_node[i] = PacsetBaseModel<T, F>::bin_start[bin_counter][i];
                     __builtin_prefetch(&bin[curr_node[i]], 0, 3);
@@ -123,15 +124,12 @@ class PacsetGradientBoostedRegressor: public PacsetBaseModel<T, F> {
                     sum += last_node[i];
                 }
 
-#pragma omp critical
-                {
                 leaf_sum +=sum;
                 block_offset += bin.size();
-                }
             }
             preds.clear();
             preds.push_back(leaf_sum);
-	    preds.push_back((double)total_num_trees);
+	    preds.push_back((double)1);
 #ifdef BLOCK_LOGGING 
             return blocks_accessed.size();
 #else
@@ -172,42 +170,32 @@ class PacsetGradientBoostedRegressor: public PacsetBaseModel<T, F> {
 	    int agg_pred_val = 0;
 #pragma omp parallel for num_threads(num_threads)
             for(int bin_counter=0; bin_counter<num_bins; ++bin_counter){
-		int num_estimators = PacsetBaseModel<T, F>::bin_sizes[bin_counter] / num_classes;
                 int block_number = 0;
 		int final_pred_value = 0;
 		Node<T, F> *bin  = data + offsets[bin_counter];
 		std::vector<int> curr_node(PacsetBaseModel<T, F>::bin_sizes[bin_counter]);
-                int i, feature_num=0, number_not_in_leaf=0;
+                std::vector<double> last_node(PacsetBaseModel<T, F>::bin_sizes[bin_counter]);
+		int i, feature_num=0, number_not_in_leaf=0;
                 T feature_val;
                 int siz = PacsetBaseModel<T, F>::bin_sizes[bin_counter];
 		total_num_trees += siz;
 		bin_tree_offset = tree_offsets[bin_counter];
                 for(i=0; i<siz; ++i){
                     curr_node[i] = PacsetBaseModel<T, F>::bin_start[bin_counter][i];
+		    last_node[i] = bin[curr_node[i]].getThreshold();
 		    __builtin_prefetch(&bin[curr_node[i]], 0, 3);
-#ifdef BLOCK_LOGGING 
-                    block_number = (curr_node[i] + block_offset) / BLOCK_SIZE;
-#pragma omp critical
-                    blocks_accessed.insert(block_number);
-#endif
                 }
                 do{
                     number_not_in_leaf = 0;
                     for( i=0; i<siz; ++i){
-		
 			if(curr_node[i] >= 0){
-#ifdef BLOCK_LOGGING 
-                    	    block_number = (curr_node[i] + block_offset)/ BLOCK_SIZE;
-#pragma omp critical
-                            blocks_accessed.insert(block_number);
-#endif
-                            feature_num = bin[curr_node[i]].getFeature();
-                            feature_val = observation[feature_num];
                             if(bin[curr_node[i]].getLeft() == -1){
-				final_pred_value += bin[curr_node[i]].getThreshold();
+				last_node[i] =bin[curr_node[i]].getThreshold();
                                 curr_node[i] = -1;
 			    }
 			    else {
+                            	feature_num = bin[curr_node[i]].getFeature();
+                            	feature_val = observation[feature_num];
 			        curr_node[i] = bin[curr_node[i]].nextNode(feature_val);
                                 __builtin_prefetch(&bin[curr_node[i]], 0, 3);
                                 ++number_not_in_leaf;
@@ -215,25 +203,18 @@ class PacsetGradientBoostedRegressor: public PacsetBaseModel<T, F> {
                         }
 		    }
                 }while(number_not_in_leaf);
-
-#pragma omp critical
-                {
+		double sum=0;
+                for(i=0; i<siz; ++i){
+                    sum += last_node[i];
+                }
+                leaf_sum +=sum;
                 block_offset += PacsetBaseModel<T, F>::bin_node_sizes[bin_counter];
-        	agg_pred_val+=final_pred_value;        
-		}
 
             }
-//std::vector<float>result_mat_proba(pred_mat);
-//std::vector<float>result_mat_proba;
-//	result_mat_proba = logit(pred_mat);
             preds.clear();
-            preds.push_back((double)agg_pred_val);
-            preds.push_back((double)1);
-#ifdef BLOCK_LOGGING 
-            return blocks_accessed.size();
-#else
+            preds.push_back((double)leaf_sum);
+            preds.push_back((double)total_num_trees);
             return 0;
-#endif
         }
 
         inline void predict(const std::vector<std::vector<T>>& observation, 
@@ -275,7 +256,7 @@ class PacsetGradientBoostedRegressor: public PacsetBaseModel<T, F> {
 
         inline void serialize() {
             auto bins = PacsetBaseModel<T, F>::bins;
-            int num_classes = std::stoi(Config::getValue("numclassesactual"));
+            int num_classes = std::stoi(Config::getValue("numclasses"));
             int num_bins = bins.size();
             std::vector<int> bin_sizes = PacsetBaseModel<T, F>::bin_sizes;
             std::vector<int> bin_node_sizes = PacsetBaseModel<T, F>::bin_node_sizes;
@@ -315,6 +296,9 @@ class PacsetGradientBoostedRegressor: public PacsetBaseModel<T, F> {
                     fout<<tree_start<<"\n";
                 }
             }
+
+	    //name of init model  filename
+	    fout<<Config::getValue("initModelFilename")<<"\n";
             fout.close();
             
             if(format != std::string("notfound") ||
@@ -402,6 +386,9 @@ class PacsetGradientBoostedRegressor: public PacsetBaseModel<T, F> {
                 bin_tree_start.push_back(temp);
                 temp.clear();
             }
+	    std::string init_model_filename;
+	    f>>init_model_filename;
+	    Config::setConfigItem("initModelFilename", init_model_filename);
             f.close();
             setMembers(num_trees_bin, num_nodes_bin, bin_tree_start);
 

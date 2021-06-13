@@ -112,9 +112,10 @@ class Packer{
 		std::deque <StatNode<T, F>> bin_q;
 		std::deque <StatNode<T, F>> bin_q_left;
 		std::deque <StatNode<T, F>> bin_q_right;
-
+		//std::cout<<"number of trees in bin: "<<num_trees_in_bin<<"\n";
 		for(int i=0; i<num_trees_in_bin; ++i){
 			temp_q.push_back(bin[bin_start[i]]);
+			//bin[bin_start[i]].printNode();
 			bin_start[i] = num_classes + i;
 		}
 
@@ -163,10 +164,12 @@ class Packer{
 
 		while(!temp_q.empty()){
 			auto ele = temp_q.front();
-			if(ele.getID() > -5)
+			if(ele.getID() >=0)
 				bin_q.push_back(ele);
 			temp_q.pop_front();
 		}
+		//std::cout<<"Print finalbin size here!!\n";
+		//std::cout<<finalbin.size()<<"\n";
 		return bin_q;
 	}
 
@@ -244,6 +247,10 @@ class Packer{
 			std::vector<int> &bin_start, 
 			std::deque<StatNode<T, F>> &bin_q) { 
 		int num_classes = std::atoi(Config::getValue("numclasses").c_str());
+		int ctr=0;
+		for(auto node: finalbin){
+			ctr++;
+		}
 		while(!bin_q.empty()){
 			std::deque<StatNode<T, F>> bin_st;
 			auto ele = bin_q.front();
