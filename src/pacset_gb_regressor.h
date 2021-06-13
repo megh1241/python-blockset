@@ -23,7 +23,8 @@ class PacsetGradientBoostedRegressor: public PacsetBaseModel<T, F> {
         inline void setMembers(const std::vector<int> &bin_sizes,
                 const std::vector<int> &bin_node_sizes,
                 const std::vector<std::vector<int>> &bin_start){
-            
+           
+	    PacsetBaseModel<T, F>::bin_sizes.clear();	
             std::copy(bin_sizes.begin(), bin_sizes.end(), back_inserter(PacsetBaseModel<T, F>::bin_sizes)); 
             std::copy(bin_node_sizes.begin(), bin_node_sizes.end(), back_inserter(PacsetBaseModel<T, F>::bin_node_sizes)); 
             for (auto i: bin_start)

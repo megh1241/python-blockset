@@ -47,7 +47,7 @@ void BlocksetBase::pack(std::string filename){
 	if(Config::getValue(std::string("numbins")) == std::string("notfound"))
 		Config::setConfigItem(std::string("numbins"), std::string("1"));
 	if(Config::getValue(std::string("blocksize")) == std::string("notfound"))
-		Config::setConfigItem(std::string("blocksize"), std::string("124"));
+		Config::setConfigItem(std::string("blocksize"), std::string("128"));
 	if(Config::getValue(std::string("layout")) == std::string("notfound"))
 		Config::setConfigItem(std::string("layout"), std::string("binbfs"));
 	if(Config::getValue(std::string("intertwine")) == std::string("notfound"))
