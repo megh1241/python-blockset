@@ -23,7 +23,7 @@ class BlocksetBase():
         self.algorithm='gb'
 
     def loadJSONModel(self, filename):
-        if self.task == 'r' and self.algorithm=='gb':
+        if self.algorithm=='gb':
             init_model_filename = 'init' + filename[:-5] + '.joblib'
             pyblockset.Config.setConfigItem('initModelFilename', init_model_filename)
         self.model.loadJSONModel(filename)
@@ -43,14 +43,18 @@ class BlocksetBase():
     def predict(self, X):
         if self.task == 'r':
             if self.algorithm == 'gb':
-                print("enter gb regression!!!!!!!!")
                 import joblib
                 init_model_filename = pyblockset.Config.getValue('initModelFilename')
                 init_model = joblib.load(init_model_filename)
                 A = X.reshape(1, -1)
-                print(init_model.predict(A)[0])
                 return self.model.predictLabelRegression(X) + init_model.predict(A)[0]
 
             return self.model.predictLabelRegression(X)
         else:
+            if self.algorithm == 'gb':
+                import joblib
+                init_model_filename = pyblockset.Config.getValue('initModelFilename')
+                init_model = joblib.load(init_model_filename)
+                A = X.reshape(1, -1)
+                return self.model.predictLabelClassification(X) + init_model.predict(A)[0]
             return self.model.predictLabelClassification(X)

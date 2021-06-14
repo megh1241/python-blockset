@@ -78,78 +78,29 @@ class PacsetRandomForestClassifier: public PacsetBaseModel<T, F> {
 			}
 		}
 
-		inline int predict(const std::vector<T>& observation, std::vector<double>& preds) {}
 
 
-		inline int predict(const std::vector<T>& observation, std::vector<int>& preds) {
-			int num_classes = std::stoi(Config::getValue("numclasses"));
-			int num_threads = std::stoi(Config::getValue("numthreads"));
-			int num_bins = PacsetBaseModel<T, F>::bins.size();
-
-			std::unordered_set<int> blocks_accessed;
-#pragma omp parallel for num_threads(num_threads)
-			for(int bin_counter=0; bin_counter<num_bins; ++bin_counter){
-				int block_number = 0;
-				int block_offset = 0;
-				auto bin = PacsetBaseModel<T, F>::bins[bin_counter];
-
-				std::vector<int> curr_node(PacsetBaseModel<T, F>::bin_node_sizes[bin_counter]);
-				int i, feature_num=0, number_not_in_leaf=0;
-				T feature_val;
-				int siz = PacsetBaseModel<T, F>::bin_sizes[bin_counter];
-				for(i=0; i<siz; ++i){
-					curr_node[i] = PacsetBaseModel<T, F>::bin_start[bin_counter][i];
-					__builtin_prefetch(&bin[curr_node[i]], 0, 3);
-#ifdef BLOCK_LOGGING 
-					block_number = (curr_node[i] + block_offset) / BLOCK_SIZE;
-#pragma omp critical
-					blocks_accessed.insert(block_number);
-#endif
-				}
-
-				do{
-					number_not_in_leaf = 0;
-					for( i=0; i<siz; ++i){
-						if(bin[curr_node[i]].isInternalNodeFront()){
-#ifdef BLOCK_LOGGING 
-							block_number = (curr_node[i] + block_offset)/ BLOCK_SIZE;
-#pragma omp critical
-							blocks_accessed.insert(block_number);
-#endif
-							feature_num = bin[curr_node[i]].getFeature();
-							feature_val = observation[feature_num];
-							curr_node[i] = bin[curr_node[i]].nextNode(feature_val);
-							__builtin_prefetch(&bin[curr_node[i]], 0, 3);
-							++number_not_in_leaf;
-						}
-					}
-				}while(number_not_in_leaf);
-
-				for(i=0; i<siz; ++i){
-#pragma omp atomic update
-					++preds[bin[curr_node[i]].getClass()];
-				}
-
-#pragma omp critical
-				block_offset += bin.size();
-			}
-#ifdef BLOCK_LOGGING 
-			return blocks_accessed.size();
-#else
-			return 0;
-#endif
-		}
-
-		void predict(const std::vector<std::vector<T>> &observations,
-				std::vector<double> &preds, std::vector<double> &result, bool mmap) {}
-
-		inline int mmapAndPredict(const std::vector<T>& observation, std::vector<int>& preds, int obsnum) {
+		inline int mmapAndPredict(const std::vector<T>& observation, std::vector<int>& preds, int obsnum, bool mmap) {
 			int num_classes = std::stoi(Config::getValue("numclasses"));
 			int num_threads = std::stoi(Config::getValue("numthreads"));
 			int num_bins = PacsetBaseModel<T, F>::bin_sizes.size();
 			std::string modelfname = Config::getValue("modelfilename");
+			Node<T, F> *data;
 			MemoryMapped mmapped_obj(modelfname.c_str(), 0);
-			Node<T, F> *data = (Node<T, F>*)mmapped_obj.getData();
+			//data = (Node<T, F>*)mmapped_obj.getData();
+			if (mmap){
+				data = (Node<T, F>*)mmapped_obj.getData();
+			}else{
+				FILE* fp;
+				fp = fopen(modelfname.c_str(),"rb");
+				std::vector<Node<T, F>> bin_elements;
+				while(!feof(fp)){
+				       Node<T, F> node;
+				       fread((char*)&node,sizeof(node),1,fp);
+				       bin_elements.push_back(node);
+				}
+				data = bin_elements.data();
+			}
 
 			std::unordered_set<int> blocks_accessed;
 			int block_offset = 0;
@@ -201,7 +152,9 @@ class PacsetRandomForestClassifier: public PacsetBaseModel<T, F> {
 			return std::make_pair(bin_start_list + node_number/blob_size, node_number % blob_size);
 		}	
 		
-
+		inline void predict(const std::vector<std::vector<T>> &observations,
+                	std::vector<double> &preds, std::vector<double> &result, bool mmap){}
+		
 		inline void predict(const std::vector<std::vector<T>>& observation, 
 				std::vector<int>& preds, std::vector<int>&results, bool mmap) {
 
@@ -227,10 +180,7 @@ class PacsetRandomForestClassifier: public PacsetBaseModel<T, F> {
 			//writeGarbage();
 			for(auto single_obs : observation){
 				auto start = std::chrono::steady_clock::now();
-				if (mmap)
-					blocks = mmapAndPredict(single_obs, preds, ct+1);
-				else
-					blocks = predict(single_obs, preds);
+				blocks = mmapAndPredict(single_obs, preds, ct+1, mmap);
 
 				num_blocks.push_back(blocks);
 				//TODO: change

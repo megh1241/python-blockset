@@ -22,10 +22,6 @@ class PacsetBaseModel{
 	virtual void setBinNodeSizes(int pos, int siz) = 0;
 	virtual void pack() = 0;
         virtual void loadModel() = 0;
-        virtual int predict(const std::vector<T> &observations, 
-                std::vector<int> &preds) = 0;
-        virtual int predict(const std::vector<T> &observations, 
-                std::vector<double> &preds) = 0;
         virtual void predict(const std::vector<std::vector<T>> &observations, 
                 std::vector<int> &preds, std::vector<int> &result, bool mmap) = 0;
         virtual void predict(const std::vector<std::vector<T>> &observations, 

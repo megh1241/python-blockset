@@ -168,8 +168,6 @@ class Packer{
 				bin_q.push_back(ele);
 			temp_q.pop_front();
 		}
-		//std::cout<<"Print finalbin size here!!\n";
-		//std::cout<<finalbin.size()<<"\n";
 		return bin_q;
 	}
 
@@ -247,28 +245,29 @@ class Packer{
 			std::vector<int> &bin_start, 
 			std::deque<StatNode<T, F>> &bin_q) { 
 		int num_classes = std::atoi(Config::getValue("numclasses").c_str());
-		int ctr=0;
-		for(auto node: finalbin){
-			ctr++;
-		}
+
 		while(!bin_q.empty()){
 			std::deque<StatNode<T, F>> bin_st;
 			auto ele = bin_q.front();
 			bin_q.pop_front();
 			bin_st.push_back(ele);
 			while(!bin_st.empty()){
+				
 				auto ele = bin_st.front();
 				bin_st.pop_front(); 
 				finalbin.push_back(ele);
 				node_to_index.insert(std::pair<int, int>(ele.getID(), finalbin.size()-1));
-				if((ele.getLeft() < num_classes) && (ele.getRight() < num_classes))
+				if((ele.getLeft() < num_classes) && (ele.getRight() < num_classes)){
 					continue;
+				}
 
-				else if(ele.getLeft() < num_classes)
+				else if(ele.getLeft() < num_classes){
 					bin_st.push_back(bin[ele.getRight()]);
+				}
 
-				else if(ele.getRight() < num_classes)
+				else if(ele.getRight() < num_classes){
 					bin_st.push_back(bin[ele.getLeft()]); 
+				}
 
 				else {
 					bin_st.push_back(bin[ele.getLeft()]); 
@@ -552,6 +551,8 @@ class Packer{
 		std::deque<StatNode<T, F>> bin_q;
 
 		if (algorithm == std::string("randomforest") && task == std::string("classification")){
+			std::cout<<"bin helper\n";
+			fflush(stdout);
 			bin_q = packBinHelperRFClass(bin, num_trees_in_bin, bin_start);
 		}
 		else if (algorithm == std::string("randomforest") && task == std::string("regression")){
