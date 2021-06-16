@@ -7,6 +7,17 @@ def argmax_1(a):
 
 
 def write_to_json(model1, filename, regression=False):
+    """
+    This method saves an sklearn random forest model to a json format.
+    Parameters:
+    model : Sklearn model 
+    filename : The name and full path of the filename that you want to
+    store the model in.
+    regression: (True/False)
+    Returns:
+    No return value
+    """
+
     final_count = 0
     new_dict = {'estimators': {'nodes': [], 'values': [] } }
     for count, estimator in enumerate(model1.estimators_):
@@ -35,6 +46,27 @@ def write_to_json(model1, filename, regression=False):
 
 
 def write_to_json_gbt(model, filename, regression=False):
+    """
+    This method saves an sklearn gradient boosted tree ensemble
+    model to a json format.
+    Parameters:
+    model : Sklearn model 
+    filename : The name and full path of the filename that you want to
+    store the model in.
+    regression: (True/False)
+    Returns:
+    No return value
+    """
+
+    final_count = 0
+    new_dict = {'estimators': {'nodes': [], 'values': [] } }
+    for count, estimator in enumerate(model1.estimators_):
+        nodes = estimator.tree_.__getstate__()['nodes'].tolist()
+        newnodes = [list((i[0], i[1], i[2], i[3], i[5])) for i in nodes]
+        length = len(nodes)
+        values = estimator.tree_.__getstate__()['values']
+        for i in range(length):
+            if newnodes[i][0] == -1:
     new_dict = {'estimators': {'nodes': [], 'values': [] } }
     final_count = 0
     for count, estimator_list in enumerate(model.estimators_):
